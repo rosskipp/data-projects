@@ -13,7 +13,7 @@ gameType -> 2 for regular season, 3 for playoffs
 season -> this is a two year id, ex: 20132014
 teamId -> 1-30
 """
-years = ['2008','2009','2010','2011','2012','2013','2014','2015', '2016']
+years = ['2013','2014','2015', '2016']
 teamIds = range(1, 31, 1)
 baseURL = 'http://www.nhl.com/stats/player?reportType=game&report=realtime&aggregate=1&pos=S&sort=hits'
 
@@ -68,13 +68,13 @@ for i in range(len(years)-1):
         url = baseURL + '&season=' + yearId + '&teamId=' + str(teamId) + '&gameType=3'
         print 'url: ' + url
         browser.get(url)
+        # wait for page load
+        seconds = 2 + (random.random() * 3)
+        time.sleep(seconds)
         element = browser.find_element_by_xpath('//*[@id="stats-data-table"]/tbody')
         htmlData = element.get_attribute('innerHTML')
         soup = BeautifulSoup(htmlData, "lxml")
 
-        # wait for page load
-        seconds = 2 + (random.random() * 3)
-        time.sleep(seconds)
         # if there is no data in the table, then the team didn't make the playoffs
         # and we can move on
         if soup.text == 'No data available in table':
@@ -86,12 +86,12 @@ for i in range(len(years)-1):
             url = baseURL + '&season=' + yearId + '&teamId=' + str(teamId) + '&gameType=2'
             print 'url: ' + url
             browser.get(url)
-            element = browser.find_element_by_xpath('//*[@id="stats-data-table"]/tbody')
-            htmlData = element.get_attribute('innerHTML')
-            soup = BeautifulSoup(htmlData, "lxml")
             # wait for page load
             seconds = 2 + (random.random() * 3)
             time.sleep(seconds)
+            element = browser.find_element_by_xpath('//*[@id="stats-data-table"]/tbody')
+            htmlData = element.get_attribute('innerHTML')
+            soup = BeautifulSoup(htmlData, "lxml")
 
             df = processDataTable(df, soup, yearId, teamId, True)
 
