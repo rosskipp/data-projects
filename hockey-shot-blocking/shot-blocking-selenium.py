@@ -1,6 +1,7 @@
 from selenium import webdriver
 from bs4 import BeautifulSoup
 import pandas as pd
+import random
 
 # setup the chrome webdriver
 path_to_chromedriver = '/Users/rossie/Downloads/chromedriver'
@@ -30,7 +31,8 @@ for i in range(len(years-1))
 
         # if there is no data in the table, then the team didn't make the playoffs
         # and we can move on
-        if no data in table:
+        table
+        if soup.text == 'No data available in table':
             continue
         else:
             df = processDataTable(df, soup, True)
@@ -44,27 +46,38 @@ for i in range(len(years-1))
 
             df = processDataTable(df, soup, False)
 
+            # be nice and humanlike
+            seconds = 5 + (random.random() * 5)
+            time.sleep(seconds)
+
 
 def processDataTable(df, soup, reqularSeason):
     tableRows = soup.find_all('tr')
     team = trs[1].find(class_=" playerTeamsPlayedFor").text
+    print team
     season = trs[1].find(class_=" seasonId").text
     if regularSeason:
-        gameType = 'reg'
+        gameType = 'regular'
         numGames = 82
     else:
         gameType = 'playoffs'
         numGames = 0
+
     maxGames = 0
     shotBlocks = 0
     for row in tableRows:
         gamesPlayed = int(row.find(class_=" gamesPlayed").text)
         if gamesPlayed > maxGames:
             maxGames = gamesPlayed
-        shotBlocks += int(row.find(class_=" blockedShots").text)
+        shotBlocks += int(row.find(class_="blockedShots").text)
 
     if maxGames > numGames:
         numGames = maxGames
 
+    print 'season: ' + season
+    print 'team: ' + team
+    print 'game type: ' + gameType
+    print 'number of games: ' + str(numGames)
+    print 'number of shot bocks: ' + str(shotBlocks)
     df.append([season, team, gameType, numGames, shotBlocks])
     return df
