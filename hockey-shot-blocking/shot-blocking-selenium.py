@@ -80,7 +80,7 @@ for i in range(len(years)-1):
         if soup.text == 'No data available in table':
             continue
         else:
-            df = processDataTable(df, soup, yearId, teamId, True)
+            df = processDataTable(df, soup, yearId, teamId, False)
 
             # run this team and year combo on the regular season
             url = baseURL + '&season=' + yearId + '&teamId=' + str(teamId) + '&gameType=2'
@@ -93,7 +93,7 @@ for i in range(len(years)-1):
             seconds = 2 + (random.random() * 3)
             time.sleep(seconds)
 
-            df = processDataTable(df, soup, yearId, teamId, False)
+            df = processDataTable(df, soup, yearId, teamId, True)
 
             # be nice and humanlike
             seconds = 5 + (random.random() * 5)
