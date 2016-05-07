@@ -16,6 +16,9 @@ years = ['2008','2009','2010','2011','2012','2013','2014','2015', '2016']
 teamIds = range(1, 31, 1)
 baseURL = 'http://www.nhl.com/stats/player?reportType=game&report=realtime&aggregate=1&pos=S'
 
+# create the global dataframe for data storage
+df = pd.DataFrame(columns=['season', 'team', 'gameType', 'numGames', 'numBlocks'])
+
 for i in range(len(years-1))
     yearId = years[i] + years[i+1]
     for teamId in teamIds:
@@ -25,14 +28,12 @@ for i in range(len(years-1))
         htmlData = element.get_attribute('innerHTML')
         soup = BeautifulSoup(htmlData, "lxml")
 
-
         # if there is no data in the table, then the team didn't make the playoffs
         # and we can move on
         if no data in table:
             continue
         else:
-            #process and save this data
-
+            df = processDataTable(df, soup, True)
 
             # run this team and year combo on the regular season
             url = baseURL + '&season=' + yearId + '&teamId' + teamId + '&gameType=2'
@@ -40,4 +41,30 @@ for i in range(len(years-1))
             element = browser.find_element_by_xpath('//*[@id="stats-data-table"]/tbody')
             htmlData = element.get_attribute('innerHTML')
             soup = BeautifulSoup(htmlData, "lxml")
-            # process this data
+
+            df = processDataTable(df, soup, False)
+
+
+def processDataTable(df, soup, reqularSeason):
+    tableRows = soup.find_all('tr')
+    team = trs[1].find(class_=" playerTeamsPlayedFor").text
+    season = trs[1].find(class_=" seasonId").text
+    if regularSeason:
+        gameType = 'reg'
+        numGames = 82
+    else:
+        gameType = 'playoffs'
+        numGames = 0
+    maxGames = 0
+    shotBlocks = 0
+    for row in tableRows:
+        gamesPlayed = int(row.find(class_=" gamesPlayed").text)
+        if gamesPlayed > maxGames:
+            maxGames = gamesPlayed
+        shotBlocks += int(row.find(class_=" blockedShots").text)
+
+    if maxGames > numGames:
+        numGames = maxGames
+
+    df.append([season, team, gameType, numGames, shotBlocks])
+    return df
