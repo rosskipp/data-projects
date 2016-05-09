@@ -13,14 +13,14 @@ gameType -> 2 for regular season, 3 for playoffs
 season -> this is a two year id, ex: 20132014
 teamId -> 1-30
 """
-years = ['2013','2014','2015', '2016']
+years = ['2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016']
 teamIds = range(1, 31, 1)
 baseURL = 'http://www.nhl.com/stats/player?reportType=game&report=realtime&aggregate=1&pos=S&sort=hits'
 
 # create the global dataframe for data storage
-df = pd.DataFrame(columns=['season', 'team', 'gameType', 'numGames', 'numBlocks'])
+df = pd.DataFrame(columns=['season', 'team', 'numGamesPlayoffs', 'numBlocksPlayoffs', 'numGamesRegular', 'numBlocksRegular'])
 
-def processDataTable(df, soup, yearId, teamId, regularSeason):
+def processDataTable(soup, yearId, teamId, regularSeason):
     tableRows = soup.find_all('tr')
     try:
         team = tableRows[1].find(class_=" teamAbbrev").text
@@ -58,8 +58,7 @@ def processDataTable(df, soup, yearId, teamId, regularSeason):
     print 'game type: ' + gameType
     print 'number of games: ' + str(numGames)
     print 'number of shot bocks: ' + str(shotBlocks)
-    df.loc[(df.shape[0])+1] = [season, team, gameType, numGames, shotBlocks]
-    return df
+    return [team, season, numGames, shotBlocks]
 
 
 for i in range(len(years)-1):
@@ -80,7 +79,7 @@ for i in range(len(years)-1):
         if soup.text == 'No data available in table':
             continue
         else:
-            df = processDataTable(df, soup, yearId, teamId, False)
+            playoffData = processDataTable(soup, yearId, teamId, False)
 
             # run this team and year combo on the regular season
             url = baseURL + '&season=' + yearId + '&teamId=' + str(teamId) + '&gameType=2'
@@ -93,11 +92,12 @@ for i in range(len(years)-1):
             htmlData = element.get_attribute('innerHTML')
             soup = BeautifulSoup(htmlData, "lxml")
 
-            df = processDataTable(df, soup, yearId, teamId, True)
+            regularData = processDataTable(soup, yearId, teamId, True)
 
             # be nice and humanlike
             seconds = 5 + (random.random() * 5)
             time.sleep(seconds)
 
+            df.loc[(df.shape[0])+1] = [playoffData[1], playoffData[0], playoffData[2], playoffData[3], regularData[2],regularData[3]]
             # save the data to overwrite - just so we have Something if id decides to break
-            df.to_csv('~/Development/github/data-projects/hockey-shot-blocking/data.csv',index=False)
+            df.to_csv('~/Development/github/data-projects/hockey-shot-blocking/data-v2.csv',index=False)
