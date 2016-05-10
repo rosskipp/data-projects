@@ -2,15 +2,35 @@ import pandas as pd
 import plotly.plotly as py
 import plotly.graph_objs as go
 
+# DataFrame Layout
 # df = pd.DataFrame(columns=['season', 'team', 'gameType', 'numGames', 'numBlocks'])
 
 # load the csv
 df = pd.read_csv('block-data.csv')
 
-# pull out just the regular season games
-regular_season = df[df['gameType']=='regular']
 
-# make a pivot table to calc the totals for the regular season
-reg_season_total = regular_season.pivot_table(values=['numGames', 'numBlocks'], index='season', aggfunc=np.sum)
 
-reg_season_total['blocksPerGame'] = reg_season_total.numBlocks / reg_season_total.numGames
+# Plot the Playoff - Regular Difference
+trace1 = go.Histogram(
+    x = df.blkDiff,
+    marker = dict(
+        line = dict(
+            color = 'grey',
+            width = 1.0
+        )
+    )
+)
+data = [trace1]
+layout = dict(
+    title = '2006-2015 NHL Shot Blocks Per Game For Playoff Teams Difference (Playoff - Reguar Season)',
+    yaxis = dict(title = '%'),
+    xaxis = dict(
+        title = 'Shot Blocks per Game Difference',
+        zeroline = True
+    ),
+    zeroline = true,
+    zerolinewidth = 2.0,
+    bargap = 0.25
+)
+fig=dict(data=data, layout=layout)
+plotly.offline.plot(fig)
