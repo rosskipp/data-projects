@@ -3,8 +3,6 @@ A place for my data sciencey related projects
 
 ## Projects
 
-<hr>
-
 ### Hockey Shot Blocking
 
 A look at the difference between regular and post season hockey shot blocking data.
@@ -24,4 +22,4 @@ An introduction to grouping in Pandas
 
 ##### Files
 * `grouping.py` - Script for examples
-* `data.csv` - Example data (June 2016 NYC Citi-Bike data, taken from (the City Bike website)[https://www.citibikenyc.com/system-data])
+* `data.csv` - Example data (June 2016 NYC Citi-Bike data, taken from [the City Bike website](https://www.citibikenyc.com/system-data) )
