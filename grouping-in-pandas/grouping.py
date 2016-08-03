@@ -1,6 +1,5 @@
 import pandas as pd
 from ggplot import *
-import matplotlib
 
 print pd.__version__
 
@@ -28,7 +27,7 @@ groupedGender['tripduration'].median() / 60.
 groupedGender.tripduration.std() / 60.
 
 # An easier way to see this data is to use the describe method
-groupedGender.tripduration.describe([.25, .75])
+groupedGender.tripduration.describe()
 
 # How many data points over 10000 sec ~ 2hr 45min
 df[df.tripduration > 10000].tripduration.count()

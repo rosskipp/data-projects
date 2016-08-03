@@ -1,26 +1,24 @@
 # An Introduction to Grouping in Pandas
 
-### What is this grouping data you speak of?
-
-Grouping data is an integral part of many data analysis projects. The functionality for grouping in pandas is powerful, but can be tough to initially grasp. Have no fear...we will get through a short introduction together.
+Grouping data is an integral part of many data analysis projects. The functionality for grouping in pandas is vast, but can be tough to grasp initially. Have no fear...we will get through a short introduction together.
 
 ![]({{ STATIC_URL }}/img/grouping-buddies.jpg)
 
 ### Why would I want to group data?
 
-Most of the time, you have a set of data that lends itself to being categorized or grouped. As a general example, let's say we have data on a wide variety of people. We may to perform analysis where we compare groups based on age, gender, birth month, shoe size, birth city...the options are as numerous as the data points!
+Most of the time, you have a set of data that lends itself to being categorized or grouped. As a general example, let's say we have data on a wide variety of people. We may perform an analysis where we compare groups in the data based on age, gender, birth month, shoe size, or birth city; the options are as numerous as the data points!
 
-The pandas `groupby` functionality draws from the `Split-Apply-Combine` method as described by Hadley Wickham from the land of R. It's a great approach to solving data analysis problems, and his paper on the subject is worth a read (it's linked in the resources section). To summarize, he states that an important tool for analyzing data comes from splitting the data into categories or groups based on some criteria, applying some type of function to each group (sum, mean, count, etc...), then combining the results for analysis, visualization or other means of better understanding. Here's a graphic I came across illustrating the process:
+The pandas `groupby` functionality draws from the `Split-Apply-Combine` method as described by Hadley Wickham from the land of R. It's a great approach to solving data analysis problems, and his paper on the subject is worth a read (it's linked in the resources section). To summarize, he states that a common methodology for analyzing data comes from splitting the data into categories or groups based on some criteria, applying some aggregation function to each group (sum, mean, count), then combining the results for analysis, visualization or other means of better understanding. Here's a graphic I came across illustrating the process:
 
 ![]({{ STATIC_URL }}/img/split-apply-combine.jpg)
 
-Sounds like a handy process. But how do I do it in pandas?
+Sounds handy, but how do I do it in pandas?
 
 ### Codes and Stuff
 
 Just so we're on the same page, I’m running pandas `0.18.1`.
 
-I was looking around for some data to analyze, and came across [this data](https://www.citibikenyc.com/system-data) from Citi Bike, which is the NYC bike share program. It's pretty medium data at ~250MB CSV for a months worth of data. It seemed like there was potential here for some interesting findings, and applications of data grouping, so let's go down the rabbit hole...
+I was looking around for an intriguing dataset and came across [this data](https://www.citibikenyc.com/system-data) from Citi Bike, which is the NYC bike share program. It's pretty medium data at ~250MB CSV for one month's worth of data, and there was potential for some compelling findings with data grouping. Let's start down the rabbit hole...
 
 ![]({{ STATIC_URL }}/img/data-hole.jpg)
 
@@ -144,14 +142,13 @@ df.head()
   </tbody>
 </table>
 
-Looking at this, it appears that there is some good opportunity to break the data down into groups to look for some interesting trends. Some ideas are:
-* Group the data on day of the week, suand see if there is more utilization for a particular day, on average.
+It appears that there is some good opportunity to break the data down into groups to look for some interesting trends. Some ideas are:
 * Group on the gender column and see if there are more male or female riders.
-* Do certain stations get used more? We can group on the station start or finish id.
+* Do specific stations get used more than others? We can group on the station start or finish id.
+* Group the data on the day of the week, to see if there is more utilization for a particular day, on average.
+How about a few examples?
 
-How about a few examples of this functionality?
-
-If we want to group by just the gender, then we pass this key (column) to the `groupby` function as the sole argument. This is the simplest form of grouping, so please checkout out [the docs](http://pandas.pydata.org/pandas-docs/stable/groupby.html) to get all the options!
+If we want to group by just the gender, then we pass this key (column name) to the `groupby` function as the sole argument. This example is the simplest form of grouping, so please check out [the docs](http://pandas.pydata.org/pandas-docs/stable/groupby.html) to get all the options!
 
 ```
 groupedGender = df.groupby('gender')
@@ -159,7 +156,7 @@ print groupedGender
 <pandas.core.groupby.DataFrameGroupBy object at 0x1133854d0>
 ```
 
-This shows that `groupby` returns a pandas DataFrameGroupBy object. Pandas has just made some internal calculations about the new gender groups, and is ready to apply some type of computation or operation on each of these groups. We can take a look at the available methods with the docstring/tab complete functionality of Rodeo!
+The output shows that `groupby` returns a pandas DataFrameGroupBy object. Pandas has just made some internal calculations about the new gender groups and is ready to apply some operation on each of these groups. We can take a look at the available methods with the docstring/tab complete functionality of Rodeo!
 
 ![]({{ STATIC_URL }}/img/rodeo-pandas-docstring.png)
 
@@ -182,7 +179,7 @@ gender
 2    20.609678
 ```
 
-We can use a single column from the DataFrameGroupBy object and calculate some aggregation function on it - how about the median and standard deviation of the trip durations for all three groups?
+We can use a single column from the DataFrameGroupBy object and apply some aggregation function on it - how about the median and standard deviation of the trip durations for all three groups?
 
 ```
 groupedGender['tripduration'].mean() / 60.
@@ -199,14 +196,15 @@ gender
 2     91.675397
 ```
 
-So there's some summary statistics for these groups. That's a whooole lot of spread around the median...which probably means there are some outliers in the data (maybe people that kept the bike for days). Just a breif look at this even though it's outside the scope, I'm sure you were all interested.
+So there are some summary statistics for these groups (as an aside, you can use the `describe` function to get these statistics and more in one call). That's a whole lot of spread around the median, which probably means there are some outliers in the data (maybe people that kept the bike for days). Just a brief look at this even though it's outside the scope, because I'm sure you were all interested 😊
 
 ```
 df[df.tripduration > 10000].tripduration.count()
 5110
 ```
 
-So yeah, there are a lot of bike rentals outside 2:45 even though the "max" is supposed to be 30 minutes. And the plot, just because we can (using ggplot of course):
+Our suspicions are confirmed - there are many bike rentals outside 2:45 even though the "max" is supposed to be 30 minutes. And the plot, just because we can (using [ggplot](http://yhat.github.io/ggplot/) of course):
+
 
 ```
 df_short = df[df.tripduration < 10000]
@@ -217,7 +215,7 @@ ggplot(df_short, aes(x='tripduration')) + geom_histogram(bins=30) + xlab("Trip D
 ### SWEET GGPLOT GOES HERE
 
 
-One last example is looking at which are the 5 most popular start and end stations. Here's the code for that:
+One last example is looking at which are the five favorite start and end stations. We'll group the data based on the start and end station names, apply the count function, and sort the values is descending order. Here's the code for that:
 
 ```
 groupedStart = df.groupby('start station name')
@@ -242,7 +240,7 @@ W 21 St & 6 Ave           9268
 
 ```
 
-Hopefully these examples were able to show you some of the basic functionality for the `groupby` method from pandas to help enhance your analysis and whet your appetite for more! Please checkout the resources linked below for further investigation!
+Hopefully, the above examples helped introduce some basic uses for the grouping process in pandas to help enhance your analysis and whet your appetite for more! What ideas do you have for further analysis on this dataset? Can you conquer the last idea of looking at the days of the week? Please, take a look at the resources linked below for further investigation!
 
 
 ### More Resources
