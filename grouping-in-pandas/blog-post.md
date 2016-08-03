@@ -1,39 +1,32 @@
 # An Introduction to Grouping in Pandas
 
-### What is this Grouping data you speak of?
+### What is this grouping data you speak of?
 
-Grouping can be a powerful tool for any data analyst to leverage while trying to get the most out of a dataset. The functionality in pandas is powerful, but can be tough to initially wrap your head around. Have no fear...we will get through this together.
+Grouping data is an integral part of many data analysis projects. The functionality for grouping in pandas is powerful, but can be tough to initially grasp. Have no fear...we will get through a short introduction together.
 
-http://9227-presscdn-0-11.pagely.netdna-cdn.com/wp-content/uploads/2016/05/IMG_9352-970x642.jpg
+![]({{ STATIC_URL }}/img/grouping-buddies.jpg)
 
 ### Why would I want to group data?
 
-Sometimes, you have a set of data that lends itself to being categorized or grouped. For example, say we have data on a wide variety of people. We may to perform analysis where we compare groups based on age, gender, birth month, shoe size, birth city...the options are as wide as our data provides!
+Most of the time, you have a set of data that lends itself to being categorized or grouped. As a general example, let's say we have data on a wide variety of people. We may to perform analysis where we compare groups based on age, gender, birth month, shoe size, birth city...the options are as numerous as the data points!
 
-The pandas `groupby` functionality draws from the `Split-Apply-Combine` method as described by Hadley Wickham (from the land of R). It's a great approach to solving data analysis problems, and his paper on the subject is worth a read (it's linked in the resourced section). To summarize, he states that an important tool for analyzing data comes from splitting the data into categories or groups based on some criteria, applying some type of function to each group (sum, mean, count, etc...), then combining the results.
+The pandas `groupby` functionality draws from the `Split-Apply-Combine` method as described by Hadley Wickham from the land of R. It's a great approach to solving data analysis problems, and his paper on the subject is worth a read (it's linked in the resources section). To summarize, he states that an important tool for analyzing data comes from splitting the data into categories or groups based on some criteria, applying some type of function to each group (sum, mean, count, etc...), then combining the results for analysis, visualization or other means of better understanding. Here's a graphic I came across illustrating the process:
 
-Sounds like a handy tool. But how do I use it?
+![]({{ STATIC_URL }}/img/split-apply-combine.jpg)
 
+Sounds like a handy process. But how do I do it in pandas?
 
 ### Codes and Stuff
 
-First, I’ll just state that I’m running pandas 0.18.1, just so we're on the same page.
+Just so we're on the same page, I’m running pandas `0.18.1`.
+
+I was looking around for some data to analyze, and came across [this data](https://www.citibikenyc.com/system-data) from Citi Bike, which is the NYC bike share program. It's pretty medium data at ~250MB CSV for a months worth of data. It seemed like there was potential here for some interesting findings, and applications of data grouping, so let's go down the rabbit hole...
+
+![]({{ STATIC_URL }}/img/data-hole.jpg)
 
 ```
->>> import pandas as pd
->>> pd.__version__
-u’0.18.1'
-```
-
-I was looking around for some data to analyze, and came across [this data](https://www.citibikenyc.com/system-data) from Citi Bike, which is the NYC bike share program. It's pretty medium data at ~250MB CSV for a months worth of data. It seemed like there was potential here for some interesting findings, and applications of data grouping. Let's go down the rabbit hole...
-
-http://media2.govtech.com/images/770*1000/Big+data.jpg
-
-I started by unzipping the downloaded CSV from June 2016, and reading it into pandas with the `read_csv` function.
-
-```
->>> df = pd.read_csv('data.csv')
->>> df.head()
+df = pd.read_csv('data.csv')
+df.head()
 ```
 
 <table border="1" class="dataframe">
@@ -161,47 +154,95 @@ How about a few examples of this functionality?
 If we want to group by just the gender, then we pass this key (column) to the `groupby` function as the sole argument. This is the simplest form of grouping, so please checkout out [the docs](http://pandas.pydata.org/pandas-docs/stable/groupby.html) to get all the options!
 
 ```
->>> groupedGender = df.groupby('gender')
->>> print groupedGender
+groupedGender = df.groupby('gender')
+print groupedGender
 <pandas.core.groupby.DataFrameGroupBy object at 0x1133854d0>
 ```
 
-This shows that `groupby` returns a pandas DataFrameGroupBy object. Pandas has just made some built in calcutaions about the new groups, and is ready to apply some type of computation or operation on each of these groups. We can take a look at the available methods with the docstring/tab complete functionality of Rodeo!
+This shows that `groupby` returns a pandas DataFrameGroupBy object. Pandas has just made some internal calculations about the new gender groups, and is ready to apply some type of computation or operation on each of these groups. We can take a look at the available methods with the docstring/tab complete functionality of Rodeo!
 
-#### INSERT SWEET PICTURES OF RODEO
+![]({{ STATIC_URL }}/img/rodeo-pandas-docstring.png)
 
-Getting back to the data, if we use the `count` method, we can see the total number of entries for each gender group. As a key, here's what the website says for the codes - Gender (Zero=unknown; 1=male; 2=female)
+
+Getting back to the data, if we use the `count` method, we can see the total number of entries for each gender group. For reference, here's what the website says for the gender codes - "Gender (Zero=unknown; 1=male; 2=female)"
 
 ```
->>> groupedGender.size()
+groupedGender.size()
 gender
 0    178710
 1    783723
 2    249847
+
+# look at the size as a percentage of the whole (using the trip)
+total = df.gender.count()
+groupedGender.size() / total * 100
+gender
+0    14.741644
+1    64.648679
+2    20.609678
 ```
 
 We can use a single column from the DataFrameGroupBy object and calculate some aggregation function on it - how about the median and standard deviation of the trip durations for all three groups?
 
 ```
->>> groupedGender['tripduration'].mean() / 60.
+groupedGender['tripduration'].mean() / 60.
 gender
 0    35.923658
 1    13.778720
 2    16.198230
 
 # Don't have to use the bracket notation
->>> groupedGender.tripduration.std() / 60.
+groupedGender.tripduration.std() / 60.
 gender
 0    193.417686
 1     94.884313
 2     91.675397
 ```
 
-So there's some summary statistics for these groups. That's a whooole lot of spread around the median...which probably means there's some outliers in the data (people that kept the bike for days).
+So there's some summary statistics for these groups. That's a whooole lot of spread around the median...which probably means there are some outliers in the data (maybe people that kept the bike for days). Just a breif look at this even though it's outside the scope, I'm sure you were all interested.
+
+```
+df[df.tripduration > 10000].tripduration.count()
+5110
+```
+
+So yeah, there are a lot of bike rentals outside 2:45 even though the "max" is supposed to be 30 minutes. And the plot, just because we can (using ggplot of course):
+
+```
+df_short = df[df.tripduration < 10000]
+df_short.tripduration = df_short.tripduration / 60.
+ggplot(df_short, aes(x='tripduration')) + geom_histogram(bins=30) + xlab("Trip Duration (mins)") + ylab("Count")
+```
+
+### SWEET GGPLOT GOES HERE
 
 
+One last example is looking at which are the 5 most popular start and end stations. Here's the code for that:
 
+```
+groupedStart = df.groupby('start station name')
+groupedStart['start station name'].count().sort_values(ascending=False)[:5]
 
+start station name
+Pershing Square North    12775
+West St & Chambers St    10128
+Lafayette St & E 8 St     9246
+W 21 St & 6 Ave           9220
+E 17 St & Broadway        9036
+
+groupedEnd = df.groupby('end station name')
+groupedEnd['end station name'].count().sort_values(ascending=False)[:5]
+
+end station name
+Pershing Square North    12511
+West St & Chambers St    10189
+Lafayette St & E 8 St     9459
+E 17 St & Broadway        9273
+W 21 St & 6 Ave           9268
+
+```
+
+Hopefully these examples were able to show you some of the basic functionality for the `groupby` method from pandas to help enhance your analysis and whet your appetite for more! Please checkout the resources linked below for further investigation!
 
 
 ### More Resources
