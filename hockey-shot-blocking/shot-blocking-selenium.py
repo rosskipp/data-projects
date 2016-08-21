@@ -4,7 +4,7 @@ import pandas as pd
 import random, time
 
 # setup the chrome webdriver
-path_to_chromedriver = '/Users/rossie/Downloads/chromedriver'
+path_to_chromedriver = '~/Downloads/chromedriver'
 browser = webdriver.Chrome(executable_path = path_to_chromedriver)
 
 """
@@ -100,4 +100,4 @@ for i in range(len(years)-1):
 
             df.loc[(df.shape[0])+1] = [playoffData[1], playoffData[0], playoffData[2], playoffData[3], regularData[2],regularData[3]]
             # save the data to overwrite - just so we have Something if id decides to break
-            df.to_csv('~/Development/github/data-projects/hockey-shot-blocking/data-v2.csv',index=False)
+            df.to_csv('~/dev/repos/data-projects/hockey-shot-blocking/data-v2.csv', index=False)
