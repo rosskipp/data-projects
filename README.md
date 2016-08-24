@@ -22,4 +22,14 @@ An introduction to grouping in Pandas
 
 ##### Files
 * `grouping.py` - Script for examples
-* `data.csv` - Example data (June 2016 NYC Citi-Bike data, taken from [the City Bike website](https://www.citibikenyc.com/system-data) )
+* `data.csv` [file is too big to include in repo] - Example data (June 2016 NYC Citi-Bike data, taken from [the City Bike website](https://www.citibikenyc.com/system-data) )
+
+<hr>
+
+### iPhone Step Data Analysis
+
+Using pandas to analyze iPhone step tracking data
+
+##### Files
+* `analysis.py` - Script with code
+* `health_data_hour.csv` - hourly data from QS Access app for iPhone [not included]
