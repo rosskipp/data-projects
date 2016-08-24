@@ -2,4 +2,4 @@
 **/old
 **/.ipynb_checkpoints
 grouping-in-pandas/data.csv
-phone-data/health_data.csv
+phone-data/*.csv
