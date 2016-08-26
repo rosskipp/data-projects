@@ -1,33 +1,32 @@
 # Using pandas time series functionality to analyze step data from an iPhone.
 
-I have recently become addicted to counting steps - the walking kind. This usually manifests itself as opening my step counting app on my iPhone a few times a day to ensure that I am getting over 10,000 steps (my mom says that's the magic number). Luckily, this target happens to be relatively straightforward to achieve when you live in NYC where you're always on your feet.
+My name is Ross, and I am addicted to counting steps. The walking kind. This behavior usually manifests itself as me opening my step counting app on my iPhone many times a day to watch the number climb and ensure that I am getting over 10,000 (my mom says that's the magic number). Luckily, NYC is a walking city, so this target is very accessible.
 
-Like any true data nerd, I wanted to be able to export this data for analysis outside my phone. Luckily some smart people over at Quantified Self Labs put out an app called QS Access that makes retrieving this data a cinch! Here's some screen shots of exporting my step data as a CSV.
+Like any legit data nerd, I wanted to be able to export this data for analysis outside my phone. Of course, there's an app for that provided by some smart people over at Quantified Self Labs put out an app called QS Access that makes retrieving this data a cinch! Here're some screenshots of exporting my step data as a CSV.
 
 #### INSERT SCREEN SHOTS HERE
 
-The QS Access app exports a CSV containing 3 columns: a start timestamp, an end timestamp, and the step count for this time period. You can choose to have this data in rows of hours or days. I figured I'd start with hours and see how it went - bigger data is always better, right?
+The QS Access app exports a CSV containing three columns: a start timestamp, an end timestamp, and the step count during that period. There's an option to produce rows of hourly or daily data. Why not start with hours and see how it goes - bigger data is always better, right?
 
-### Talk about pandas time series here
-This analysis is going to have to draw on the time series tools in pandas. Lucky for us, pandas has extensive time series functionality having been developed initially for the financial services industry, which deals
+The analysis will draw on the time series tools in pandas. When Wes McKinny wrote pandas, he was working for an investment management company.  That industry relies extensively on time series analysis so pandas ships with comprehensive functionality in this area.
 
-TO THE DATAS
+## TO THE DATAS
 
-The usual...except that we know that the first two columns in the dataset are timestamps, so we'll let pandas parse these as dates.
+A couple of notes about importing this data. We already know that we have time series data, so we want to let pandas know by using the `parse_dates` parameter. The end time data isn't interesting because we have the start time and are aware it's hourly data so we can omit it with `usecols`. Last, setting the start time (col 0) to be the index column gives a DateTimeIndex and will make life easier later.
 
 ```
-df_hour = pd.read_csv('health_data_hour.csv', parse_dates=[0,1], names=['start_time', 'end_time', 'steps'], skiprows=1)
-
-# take a look
-df_hour.head()
-type(df_hour.Start[1])
-
-ggplot(df_hour, aes(x='start_time', y='steps')) + geom_step()
+df_hour = pd.read_csv('health_data_hour.csv', parse_dates=[0,1], names=['start_time', 'steps'], usecols=[0, 2], skiprows=1, index_col=0)
+# ensure the steps col are ints - weirdness going on with this one
+df_hour.steps = df_hour.steps.apply(lambda x: int(float(x)))
+type(df_hour.index)
+type(df_hour.steps[1])
 ```
+
+##HERE
 
 Notice that the type of the timestamp columns: `pandas.tslib.Timestamp`. This is the pandas Timestamp type. This gives us access to all sorts of goodies. As mentioned previously, pandas does Timestamps quite well.
 
-How about a quick [(gg)plot](http://github.com/yhat/ggplot) to explore the data we have here.
+How about a quick [(gg)plot](http://github.com/yhat/ggplot) to explore the data we have here. (Notice that you can pass the dataframe index into the ggplot function)
 
 ### PLOT 1 - hourly data all
 
@@ -41,8 +40,74 @@ DAILY RE-SAMLE
 
 Ahhh - we're getting somewhere now.  Looks like a nice upward trend
 
+Armed with this, we're able to do weekly and monthy averaging easily as well.  Just pass `'W'` or `'M'` into the resample function.
 
-#### summary stats (best day, worst day)
+If we needed to, pandas can do upsampling - the opposite of what we just did. Take a look at the docs if that's in your wheelhouse!
+
+## Going deeper
+
+I'm curious if I'm getting more steps during the weekend than during the week.  This analsis will draw on my previous post on [grouping in padas](http://blog.yhat.com/posts/grouping-pandas.html)
+
+We can use the tab suggestions in Rodeo to take a look at the methods we have available on the DateTimeIndex, and notice that there is a weekday and weekday_name method. The former will give an integer coresponding to a day of the week, while the latter will give the string name of that day. After we make a new column with that info, applying a helper function to it can return a boolean values for is_weekend?:
+
+```
+## Helper to return if the day of week is a weekend or not
+def weekendBool(day):
+    if day not in ['Saturday', 'Sunday']:
+        return False
+    else:
+        return True
+
+df_daily['weekday'] = df_daily.index.weekday
+df_daily['weekday_name'] = df_daily.index.weekday_name
+df_daily['weekend'] = df_daily.weekday_name.apply(weekendBool)
+df_daily.head()
+```
+#### DF HEAD HTML
+
+ggplot has a stat_density plot available that's perfect for comparing the weekend vs. weekday poplutaions.  Check it out:
+
+```
+ggplot(aes(x='step_count', color='weekend'), data=df_daily) + stat_density() + \
+    ggtitle("Comparing Weekend vs. Weekday Daily Step Count") + \
+    xlab("Step Count")
+```
+
+#### DENSITY PLOT
+
+We can also group the data on this weekend_bool and run some aggregation methods:
+
+```
+weekend_grouped = df_daily.groupby('weekend')
+weekend_grouped.describe()
+
+                 step_count     weekday
+weekend                                
+False   count    479.000000  479.000000
+        mean   10145.832985    1.997912
+        std     4962.913936    1.416429
+        min      847.000000    0.000000
+        25%     6345.000000    1.000000
+        50%     9742.000000    2.000000
+        75%    13195.000000    3.000000
+        max    37360.000000    4.000000
+True    count    192.000000  192.000000
+        mean   11621.166667    5.500000
+        std     7152.197426    0.501307
+        min      641.000000    5.000000
+        25%     6321.000000    5.000000
+        50%    10228.000000    5.500000
+        75%    15562.500000    6.000000
+        max    35032.000000    6.000000
+
+weekend_grouped.median()
+            step_count  weekday
+weekend                     
+False          9742      2.0
+True          10228      5.5
+```
+
+So maybe a slight edge goes to those weekends :)
 
 
 #### Window functions/moving average
