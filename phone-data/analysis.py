@@ -35,7 +35,7 @@ df_daily['step_count'] = df_hour.steps.resample('D').sum()
 df_daily.head()
 p = ggplot(df_daily, aes(x='__index__', y='step_count')) + \
     geom_step() + \
-    stat_smooth() + \
+    stat_smooth(method='lm') + \
     scale_x_date(labels="%m/%Y") + \
     ggtitle("Daily Step Count") + \
     xlab("Date") + \
@@ -43,14 +43,14 @@ p = ggplot(df_daily, aes(x='__index__', y='step_count')) + \
 print p
 p.save("daily_step_plot.png")
 
-# Weekly
+## Weekly
 df_weekly = pd.DataFrame()
 df_weekly['step_count'] = df_daily.step_count.resample('W').sum()
 df_weekly['step_mean'] = df_daily.step_count.resample('W').mean()
 df_weekly.head()
 p = ggplot(df_weekly, aes(x='__index__', y='step_count')) + \
     geom_step() + \
-    stat_smooth() + \
+    stat_smooth(method='lm') + \
     scale_x_date(labels="%m/%Y") + \
     ggtitle("Weekly Step Count") + \
     xlab("Date") + \
@@ -60,7 +60,7 @@ p.save("weekly_step_count_plot.png")
 
 p = ggplot(df_weekly, aes(x='__index__', y='step_mean')) + \
     geom_step() + \
-    stat_smooth() + \
+    stat_smooth(method='lm') + \
     scale_x_date(labels="%m/%Y") + \
     ggtitle("Weekly Step Mean") + \
     xlab("Date") + \
@@ -69,24 +69,24 @@ print p
 p.save("weekly_step_mean_plot.png")
 
 
-# Monthly
+## Monthly
 df_monthly = pd.DataFrame()
 df_monthly['step_count'] = df_daily.step_count.resample('M').sum()
 df_monthly['step_mean'] = df_daily.step_count.resample('M').mean()
 df_monthly.head()
 p = ggplot(df_monthly, aes(x='__index__', y='step_count')) + \
-    geom_step() + \
-    stat_smooth() + \
+    geom_step(method='lm') + \
+    stat_smooth(method='lm') + \
     scale_x_date(labels="%m/%Y") + \
     ggtitle("Monthly Step Count") + \
     xlab("Date") + \
     ylab("Steps")
 print p
-p.save("monthly_step_mean_plot.png")
+p.save("monthly_step_count_plot.png")
 
 p = ggplot(df_monthly, aes(x='__index__', y='step_mean')) + \
     geom_step() + \
-    stat_smooth() + \
+    stat_smooth(method='lm') + \
     scale_x_date(labels="%m/%Y") + \
     ggtitle("Monthly Step Mean") + \
     xlab("Date") + \
@@ -94,24 +94,24 @@ p = ggplot(df_monthly, aes(x='__index__', y='step_mean')) + \
 print p
 p.save("monthly_step_mean_plot.png")
 
-# Quarters
+## Quarters
 df_quarterly = pd.DataFrame()
 df_quarterly['step_count'] = df_daily.step_count.resample('Q').sum()
 df_quarterly['step_mean'] = df_daily.step_count.resample('Q').mean()
 df_quarterly.head()
 p = ggplot(df_quarterly, aes(x='__index__', y='step_count')) + \
     geom_step() + \
-    stat_smooth() + \
+    stat_smooth(method='lm') + \
     scale_x_date(labels="%m/%Y") + \
     ggtitle("Quartly Step Count") + \
     xlab("Date") + \
     ylab("Steps")
 print p
-p.save("quarterly_step_mean_plot.png")
+p.save("quarterly_step_count_plot.png")
 
 p = ggplot(df_quarterly, aes(x='__index__', y='step_mean')) + \
     geom_step() + \
-    stat_smooth() + \
+    stat_smooth(method='lm') + \
     scale_x_date(labels="%m/%Y") + \
     ggtitle("Quartly Step Mean") + \
     xlab("Date") + \

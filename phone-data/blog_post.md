@@ -18,33 +18,49 @@ A couple of notes about importing this data. We already know that we have time s
 df_hour = pd.read_csv('health_data_hour.csv', parse_dates=[0,1], names=['start_time', 'steps'], usecols=[0, 2], skiprows=1, index_col=0)
 # ensure the steps col are ints - weirdness going on with this one
 df_hour.steps = df_hour.steps.apply(lambda x: int(float(x)))
+df_hour.head()
 type(df_hour.index)
 type(df_hour.steps[1])
 ```
 
 ##HERE
 
-Notice that the type of the timestamp columns: `pandas.tslib.Timestamp`. This is the pandas Timestamp type. This gives us access to all sorts of goodies. As mentioned previously, pandas does Timestamps quite well.
+Notice that the type of the start_time column: `pandas.tseries.index.DatetimeIndex`. We got this type because we set the index column and it gives us access to all sorts of goodies - resampling for one, as we'll see later. As mentioned previously, pandas does Timestamps quite well.
 
-How about a quick [(gg)plot](http://github.com/yhat/ggplot) to explore the data we have here. (Notice that you can pass the dataframe index into the ggplot function)
+How about a quick [(gg)plot](http://github.com/yhat/ggplot) to explore the data we have here. (Notice that you can pass the dataframe `__index__` into the ggplot function)
 
 ### PLOT 1 - hourly data all
 
-Yuck...that's far too much data to be looking at all at once. I've got an idea - Pandas has a function called `resample` that will allow us to aggregate our data over a given period. More preciesely, this is called downsampling when you reduce the sampling rate of a given signal. For this example, I want to take my hourly data, and start by looking at it in terms of daily, weekly and monthly totals.  Let's start with the daily totals:
+Yuck! That's a little too busy. How can we improve our visualization? I've got an idea - pandas has a function called `resample` that will allow us to aggregate our time series data over a given period. More precisely, this is called downsampling when you reduce the sampling rate of a given signal. For this example, we will take the hourly data, and resample it on a daily, weekly, and monthly basis.  Let's start with the daily totals:
 
 ```
-DAILY RE-SAMLE
+df_daily = pd.DataFrame()
+df_daily['step_count'] = df_hour.steps.resample('D').sum()
+df_daily.head()
+p = ggplot(df_daily, aes(x='__index__', y='step_count')) + \
+    geom_step() + \
+    stat_smooth() + \
+    scale_x_date(labels="%m/%Y") + \
+    ggtitle("Daily Step Count") + \
+    xlab("Date") + \
+    ylab("Steps")
+print p
 ```
 
 ### PLOT 2 - DAILY DATA, STAT SMOOTH
 
-Ahhh - we're getting somewhere now.  Looks like a nice upward trend
+Ah-ha! We're getting somewhere now.  That's a much more readable plot :) and it looks like there's a nice upward trend. Armed with this, we're able to do weekly and monthly resampling easily as well. Just pass `'W'` or `'M'` into the resample function. It makes sense to start averaging the data with this resampling to get a daily average during the week and month sample as that is the metric that I'm interested in targeting (got to get those 10,000 a day!). That just takes changing the `sum()` function after the `resample` to a `mean()`. Like this:
 
-Armed with this, we're able to do weekly and monthy averaging easily as well.  Just pass `'W'` or `'M'` into the resample function.
+```
+df_weekly['step_mean'] = df_daily.step_count.resample('W').mean()
+df_monthly['step_mean'] = df_daily.step_count.resample('M').mean()
+```
 
-If we needed to, pandas can do upsampling - the opposite of what we just did. Take a look at the docs if that's in your wheelhouse!
+## PLOT 3 AND 4 - WEEK AND MONTH AVERAGES
 
-## Going deeper
+Pandas can also do the opposite of what we just did; called upsampling. Take a look at the docs if that's in your wheelhouse!
+
+## Going (slightly) deeper
 
 I'm curious if I'm getting more steps during the weekend than during the week.  This analsis will draw on my previous post on [grouping in padas](http://blog.yhat.com/posts/grouping-pandas.html)
 
@@ -108,9 +124,6 @@ True          10228      5.5
 ```
 
 So maybe a slight edge goes to those weekends :)
-
-
-#### Window functions/moving average
 
 
 Have a look at [my repo](https://github.com/rkipp1210/data-projects) for this project if you want to see the source.
