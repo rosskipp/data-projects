@@ -32,4 +32,5 @@ Using pandas to analyze iPhone step tracking data
 
 ##### Files
 * `analysis.py` - Script with code
-* `health_data_hour.csv` - hourly data from QS Access app for iPhone [not included]
+* `health_data_hour.csv` - hourly data from QS Access app for iPhone [not included - I can't share that personal info!]
+* `*_plot.png` - plots from the analysis script
