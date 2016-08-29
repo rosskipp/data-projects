@@ -23,13 +23,46 @@ type(df_hour.index)
 type(df_hour.steps[1])
 ```
 
-##HERE
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>steps</th>
+    </tr>
+    <tr>
+      <th>start_time</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2014-10-24 18:00:00</th>
+      <td>459</td>
+    </tr>
+    <tr>
+      <th>2014-10-24 19:00:00</th>
+      <td>93</td>
+    </tr>
+    <tr>
+      <th>2014-10-24 20:00:00</th>
+      <td>421</td>
+    </tr>
+    <tr>
+      <th>2014-10-24 21:00:00</th>
+      <td>1306</td>
+    </tr>
+    <tr>
+      <th>2014-10-24 22:00:00</th>
+      <td>39</td>
+    </tr>
+  </tbody>
+</table>
 
 Notice that the type of the start_time column: `pandas.tseries.index.DatetimeIndex`. We got this type because we set the index column and it gives us access to all sorts of goodies - resampling for one, as we'll see later. As mentioned previously, pandas does Timestamps quite well.
 
 How about a quick [(gg)plot](http://github.com/yhat/ggplot) to explore the data we have here. (Notice that you can pass the dataframe `__index__` into the ggplot function)
 
-### PLOT 1 - hourly data all
+PLOT 1 - hourly data all
 
 Yuck! That's a little too busy. How can we improve our visualization? I've got an idea - pandas has a function called `resample` that will allow us to aggregate our time series data over a given period. More precisely, this is called downsampling when you reduce the sampling rate of a given signal. For this example, we will take the hourly data, and resample it on a daily, weekly, and monthly basis.  Let's start with the daily totals:
 
@@ -47,7 +80,7 @@ p = ggplot(df_daily, aes(x='__index__', y='step_count')) + \
 print p
 ```
 
-### PLOT 2 - DAILY DATA, STAT SMOOTH
+PLOT 2 - DAILY DATA, STAT SMOOTH
 
 Ah-ha! We're getting somewhere now.  That's a much more readable plot :) and it looks like there's a nice upward trend. Armed with this, we're able to do weekly and monthly resampling easily as well. Just pass `'W'` or `'M'` into the resample function. It makes sense to start averaging the data with this resampling to get a daily average during the week and month sample as that is the metric that I'm interested in targeting (got to get those 10,000 a day!). That just takes changing the `sum()` function after the `resample` to a `mean()`. Like this:
 
@@ -56,15 +89,13 @@ df_weekly['step_mean'] = df_daily.step_count.resample('W').mean()
 df_monthly['step_mean'] = df_daily.step_count.resample('M').mean()
 ```
 
-## PLOT 3 AND 4 - WEEK AND MONTH AVERAGES
+PLOT 3 AND 4 - WEEK AND MONTH AVERAGES
 
 Pandas can also do the opposite of what we just did; called upsampling. Take a look at the docs if that's in your wheelhouse!
 
 ## Going (slightly) deeper
 
-I'm curious if I'm getting more steps during the weekend than during the week.  This analsis will draw on my previous post on [grouping in padas](http://blog.yhat.com/posts/grouping-pandas.html)
-
-We can use the tab suggestions in Rodeo to take a look at the methods we have available on the DateTimeIndex, and notice that there is a weekday and weekday_name method. The former will give an integer coresponding to a day of the week, while the latter will give the string name of that day. After we make a new column with that info, applying a helper function to it can return a boolean values for is_weekend?:
+I'm curious if I'm getting more steps during the weekend than during the week. We can use the tab suggestions in Rodeo to take a look at the methods we have available on the DateTimeIndex, and notice that there is a `weekday` and `weekday_name` method. The former will give an integer corresponding to a day of the week, while the latter will give the string name of that day. After we make a new column with that info, applying a helper function to it can return a boolean value for if that is a weekend or not.
 
 ```
 ## Helper to return if the day of week is a weekend or not
@@ -79,19 +110,75 @@ df_daily['weekday_name'] = df_daily.index.weekday_name
 df_daily['weekend'] = df_daily.weekday_name.apply(weekendBool)
 df_daily.head()
 ```
-#### DF HEAD HTML
 
-ggplot has a stat_density plot available that's perfect for comparing the weekend vs. weekday poplutaions.  Check it out:
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>step_count</th>
+      <th>weekday</th>
+      <th>weekday_name</th>
+      <th>weekend</th>
+    </tr>
+    <tr>
+      <th>start_time</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2014-10-24</th>
+      <td>2333</td>
+      <td>4</td>
+      <td>Friday</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>2014-10-25</th>
+      <td>3085</td>
+      <td>5</td>
+      <td>Saturday</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>2014-10-26</th>
+      <td>21636</td>
+      <td>6</td>
+      <td>Sunday</td>
+      <td>True</td>
+    </tr>
+    <tr>
+      <th>2014-10-27</th>
+      <td>13776</td>
+      <td>0</td>
+      <td>Monday</td>
+      <td>False</td>
+    </tr>
+    <tr>
+      <th>2014-10-28</th>
+      <td>5732</td>
+      <td>1</td>
+      <td>Tuesday</td>
+      <td>False</td>
+    </tr>
+  </tbody>
+</table>
+
+ggplot has a stat_density plot available that's perfect for comparing the weekend vs. weekday populations.
 
 ```
-ggplot(aes(x='step_count', color='weekend'), data=df_daily) + stat_density() + \
+ggplot(aes(x='step_count', color='weekend'), data=df_daily) + \
+    stat_density() + \
     ggtitle("Comparing Weekend vs. Weekday Daily Step Count") + \
     xlab("Step Count")
 ```
 
-#### DENSITY PLOT
+DENSITY PLOT
 
-We can also group the data on this weekend_bool and run some aggregation methods:
+We can also group the data on this weekend_bool and run some aggregation methods to see the differences in the data.  Have a look at my previous post on [grouping in padas](http://blog.yhat.com/posts/grouping-pandas.html) for an explanation of this functionality.
 
 ```
 weekend_grouped = df_daily.groupby('weekend')
@@ -123,7 +210,4 @@ False          9742      2.0
 True          10228      5.5
 ```
 
-So maybe a slight edge goes to those weekends :)
-
-
-Have a look at [my repo](https://github.com/rkipp1210/data-projects) for this project if you want to see the source.
+So maybe a slight edge goes to those weekends :) Hopefully, this analysis was enough to get you interested in checking out your data, and using rodeo to explore the time series functionality of pandas! Have a look at [my repo](https://github.com/rkipp1210/data-projects) for this project if you want to see the source.
