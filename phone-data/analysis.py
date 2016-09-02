@@ -143,11 +143,52 @@ p = ggplot(aes(x='step_count', color='weekend'), data=df_daily) + \
     xlab("Step Count")
 print p
 p.save("weekday_step_compare_plot.png")
-# put when i started running seriously, and moved to NYC
-# geom_vline(x=25)
 
+### Compare when I moved to NYC
 
+p = ggplot(df_weekly, aes(x='__index__', y='step_mean')) + \
+    geom_step() + \
+    stat_smooth(method='lm') + \
+    geom_vline(x=pd.Timestamp('2016-04-01')) + \
+    scale_x_date(labels="%m/%Y") + \
+    ggtitle("Weekly Step Mean - Vertical Line at NYC Move Date") + \
+    xlab("Date") + \
+    ylab("Steps")
+print p
+p.save("weekly_step_mean_plot_with_NYC_line.png")
 
+p = ggplot(df_monthly, aes(x='__index__', y='step_mean')) + \
+    geom_step() + \
+    stat_smooth(method='lm') + \
+    geom_vline(x=pd.Timestamp('2016-04-01')) + \
+    scale_x_date(labels="%m/%Y") + \
+    ggtitle("Monthly Step Mean - Vertical Line at NYC Move Date") + \
+    xlab("Date") + \
+    ylab("Steps")
+print p
+p.save("monthly_step_mean_plot_with_NYC_line.png")
+
+## Helper to return if the day of week is a weekend or not
+def nycBool(day):
+    if day < pd.Timestamp('2016-04-01'):
+        return False
+    else:
+        return True
+
+# recreate the time index so we can apply our method (DateTimeIndex doesn't have apply method)
+df_daily['timestamp'] = df_daily.index
+# apply the helper
+df_daily['nyc_livin'] = df_daily.timestamp.apply(nycBool)
+df_daily.head()
+df_daily.tail()
+
+# Density Plot
+p = ggplot(aes(x='step_count', color='nyc_livin'), data=df_daily) + \
+    stat_density() + \
+    ggtitle("Comparing NYC vs. Non-NYC Step Counts") + \
+    xlab("Step Count")
+print p
+p.save("nyc_step_compare_plot.png")
 
 
 

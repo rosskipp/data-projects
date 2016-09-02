@@ -1,18 +1,16 @@
-# Using pandas time series functionality to analyze step data from an iPhone.
+My name is Ross, and I'm addicted to counting steps. The walking kind. This obsession entails frequently opening the counting app on my iPhone to watch the step count climb and ensure I'm getting over 10,000 (my mom says that's the magic number). Luckily, living in NYC makes the goal easily achieved on most days.
 
-My name is Ross, and I am addicted to counting steps. The walking kind. This behavior usually manifests itself as me opening my step counting app on my iPhone many times a day to watch the number climb and ensure that I am getting over 10,000 (my mom says that's the magic number). Luckily, NYC is a walking city, so this target is very accessible.
+Like any legitimate data nerd, I wanted to be able to export this data for analysis outside my phone. The smart people over at Quantified Self Labs put out an app called QS Access that makes retrieving this data a cinch! Here're some screenshots of exporting the data.
 
-Like any legit data nerd, I wanted to be able to export this data for analysis outside my phone. Of course, there's an app for that provided by some smart people over at Quantified Self Labs put out an app called QS Access that makes retrieving this data a cinch! Here're some screenshots of exporting my step data as a CSV.
-
-#### INSERT SCREEN SHOTS HERE
+![](https://github.com/rkipp1210/data-projects/blob/master/phone-data/steps-app-screenshot.png)
 
 The QS Access app exports a CSV containing three columns: a start timestamp, an end timestamp, and the step count during that period. There's an option to produce rows of hourly or daily data. Why not start with hours and see how it goes - bigger data is always better, right?
 
-The analysis will draw on the time series tools in pandas. When Wes McKinny wrote pandas, he was working for an investment management company.  That industry relies extensively on time series analysis so pandas ships with comprehensive functionality in this area.
+The following analysis will draw on the time series tools built into pandas. When Wes McKinny started the pandas project, he was working for an investment management company and this industry relies extensively on time series analysis. As a result, pandas ships with comprehensive functionality in this area.
 
-## TO THE DATAS
+## TO THE DATAS!
 
-A couple of notes about importing this data. We already know that we have time series data, so we want to let pandas know by using the `parse_dates` parameter. The end time data isn't interesting because we have the start time and are aware it's hourly data so we can omit it with `usecols`. Last, setting the start time (col 0) to be the index column gives a DateTimeIndex and will make life easier later.
+A couple of notes about importing this data. We already know that we have time series data, so we can let pandas know by using the `parse_dates` parameter. The end time data in the CSV isn't particularly interesting because we have the start time and know that we have hourly frequency so we can omit it with `usecols`. Last, setting the start time (col 0) to be the index column gives a `DateTimeIndex` and will make our job easier later.
 
 ```
 df_hour = pd.read_csv('health_data_hour.csv', parse_dates=[0,1], names=['start_time', 'steps'], usecols=[0, 2], skiprows=1, index_col=0)
@@ -23,7 +21,7 @@ type(df_hour.index)
 type(df_hour.steps[1])
 ```
 
-<table border="1" class="dataframe">
+<table border="1" class="dataframe" style="width:auto;text-align:center">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -58,13 +56,13 @@ type(df_hour.steps[1])
   </tbody>
 </table>
 
-Notice that the type of the start_time column: `pandas.tseries.index.DatetimeIndex`. We got this type because we set the index column and it gives us access to all sorts of goodies - resampling for one, as we'll see later. As mentioned previously, pandas does Timestamps quite well.
+Notice that the type of the start_time column: `pandas.tseries.index.DatetimeIndex`. This is due to setting the index column during the data ingest, and it gives us access to all sorts of goodies - resampling for one, as we'll see later.
 
-How about a quick [(gg)plot](http://github.com/yhat/ggplot) to explore the data we have here. (Notice that you can pass the dataframe `__index__` into the ggplot function)
+How about a quick [(gg)plot](http://github.com/yhat/ggplot) to explore the data we have here.
 
-PLOT 1 - hourly data all
+![](https://github.com/rkipp1210/data-projects/blob/master/phone-data/hourly_step_plot.png)
 
-Yuck! That's a little too busy. How can we improve our visualization? I've got an idea - pandas has a function called `resample` that will allow us to aggregate our time series data over a given period. More precisely, this is called downsampling when you reduce the sampling rate of a given signal. For this example, we will take the hourly data, and resample it on a daily, weekly, and monthly basis.  Let's start with the daily totals:
+Yuck! That's a little too busy. How can we improve our visualization? I've got an idea - pandas has a function called `resample` that will allow us to aggregate the data over a longer duration. More precisely, this is called downsampling when you reduce the sampling rate of a given signal. For this example, we will take the hourly data, and resample it on a daily, weekly, and monthly basis using the mean and sum aggregations.  Let's start with the daily totals (notice that you can pass the dataframe `__index__` into the ggplot function):
 
 ```
 df_daily = pd.DataFrame()
@@ -80,25 +78,27 @@ p = ggplot(df_daily, aes(x='__index__', y='step_count')) + \
 print p
 ```
 
-PLOT 2 - DAILY DATA, STAT SMOOTH
+![](https://github.com/rkipp1210/data-projects/blob/master/phone-data/daily_step_plot.png)
 
-Ah-ha! We're getting somewhere now.  That's a much more readable plot :) and it looks like there's a nice upward trend. Armed with this, we're able to do weekly and monthly resampling easily as well. Just pass `'W'` or `'M'` into the resample function. It makes sense to start averaging the data with this resampling to get a daily average during the week and month sample as that is the metric that I'm interested in targeting (got to get those 10,000 a day!). That just takes changing the `sum()` function after the `resample` to a `mean()`. Like this:
+Ah-ha! We're getting somewhere now.  That's a much more readable plot :) and it looks like there's a nice upward trend (we'll get to that later). Armed with this, we're able to do weekly and monthly resampling easily as well. Just pass `'W'` or `'M'` into the resample function. Because I'm most interested in the daily step total metric, we can start using an average aggregation function to get a daily average during the weekly and monthly samples (got to get those 10,000 a day!). That just takes changing the `sum()` function after the `resample` to a `mean()`. Like this:
 
 ```
 df_weekly['step_mean'] = df_daily.step_count.resample('W').mean()
 df_monthly['step_mean'] = df_daily.step_count.resample('M').mean()
 ```
 
-PLOT 3 AND 4 - WEEK AND MONTH AVERAGES
+![](https://github.com/rkipp1210/data-projects/blob/master/phone-data/weekly_step_mean_plot.png)
+![](https://github.com/rkipp1210/data-projects/blob/master/phone-data/monthly_step_mean_plot.png)
 
-Pandas can also do the opposite of what we just did; called upsampling. Take a look at the docs if that's in your wheelhouse!
+Pandas can also do the opposite of what we just did; called upsampling. Take a look at the docs if you need that for your project.
+
+![](https://github.com/rkipp1210/data-projects/blob/master/phone-data/go-deeper.jpg)
 
 ## Going (slightly) deeper
 
-I'm curious if I'm getting more steps during the weekend than during the week. We can use the tab suggestions in Rodeo to take a look at the methods we have available on the DateTimeIndex, and notice that there is a `weekday` and `weekday_name` method. The former will give an integer corresponding to a day of the week, while the latter will give the string name of that day. After we make a new column with that info, applying a helper function to it can return a boolean value for if that is a weekend or not.
+I'm curious if I'm getting more steps during the weekend than during the week. We can use the tab suggestions in Rodeo to take a look at the methods we have available on the DateTimeIndex.  There happen to be `weekday` and `weekday_name` methods, which sound useful. The former will give an integer corresponding to a day of the week, while the latter will give the string name of that day. After we make a new column with that info, applying a helper function to it can return a boolean value for if that is a weekend or not.
 
 ```
-## Helper to return if the day of week is a weekend or not
 def weekendBool(day):
     if day not in ['Saturday', 'Sunday']:
         return False
@@ -111,7 +111,7 @@ df_daily['weekend'] = df_daily.weekday_name.apply(weekendBool)
 df_daily.head()
 ```
 
-<table border="1" class="dataframe">
+<table border="1" class="dataframe" style="width:auto;text-align:center">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -167,16 +167,16 @@ df_daily.head()
   </tbody>
 </table>
 
-ggplot has a stat_density plot available that's perfect for comparing the weekend vs. weekday populations.
-
 ```
-ggplot(aes(x='step_count', color='weekend'), data=df_daily) + \
-    stat_density() + \
-    ggtitle("Comparing Weekend vs. Weekday Daily Step Count") + \
-    xlab("Step Count")
+ggplot has a stat_density plot available that's perfect for comparing the weekend vs. weekday populations.  Check it out:
+
+    ggplot(aes(x='step_count', color='weekend'), data=df_daily) + \
+        stat_density() + \
+        ggtitle("Comparing Weekend vs. Weekday Daily Step Count") + \
+        xlab("Step Count")
 ```
 
-DENSITY PLOT
+![](https://github.com/rkipp1210/data-projects/blob/master/phone-data/weekend_density_plot.png)
 
 We can also group the data on this weekend_bool and run some aggregation methods to see the differences in the data.  Have a look at my previous post on [grouping in padas](http://blog.yhat.com/posts/grouping-pandas.html) for an explanation of this functionality.
 
@@ -185,7 +185,7 @@ weekend_grouped = df_daily.groupby('weekend')
 weekend_grouped.describe()
 
                  step_count     weekday
-weekend                                
+weekend
 False   count    479.000000  479.000000
         mean   10145.832985    1.997912
         std     4962.913936    1.416429
@@ -205,9 +205,21 @@ True    count    192.000000  192.000000
 
 weekend_grouped.median()
             step_count  weekday
-weekend                     
+weekend
 False          9742      2.0
 True          10228      5.5
 ```
 
-So maybe a slight edge goes to those weekends :) Hopefully, this analysis was enough to get you interested in checking out your data, and using rodeo to explore the time series functionality of pandas! Have a look at [my repo](https://github.com/rkipp1210/data-projects) for this project if you want to see the source.
+So maybe a slight edge goes to the weekends :)
+
+Let's get back to the upward trend.  I moved to NYC at the beginning of April from Charlotte.  Another curiosity I have is the effect that this location change had on my daily step count. We can apply the same methodology as the weekend data to figure this out. I'll just give you the good stuff:
+
+![](https://github.com/rkipp1210/data-projects/blob/master/phone-data/monthly_step_mean_plot_with_NYC_line.png)
+
+![](https://github.com/rkipp1210/data-projects/blob/master/phone-data/nyc_step_compare_plot.png)
+
+That plot makes it look like there's a change after moving to NYC. There are more variables than just the location change, like the fact that I started running more seriously, which would add some skew, but controlling for that effect would require more data.  Maybe for another post!
+
+ Hopefully, this analysis was enough to get you interested in checking out your data, and using rodeo to explore the time series functionality of pandas! Have a look at [my repo](https://github.com/rkipp1210/data-projects) for this project if you want to see the source.
+
+{% endfilter %}
