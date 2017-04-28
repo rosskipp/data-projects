@@ -39,5 +39,5 @@ for row in rows:
 
     df.loc[(df.shape[0])+1] = [season, gameDate, awayTeam, awayScore, homeTeam, homeScore]
 
-# save the data to overwrite - just so we have Something if id decides to break
+# save the data to overwrite - just so we have Something if it decides to break
 df.to_csv('data_bak.csv', index=False)
