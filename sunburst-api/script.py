@@ -2,11 +2,6 @@ import requests
 import json
 from twilio.rest import Client
 
-"""
-The output of the /login endpoint is saved to a file called "suburst-token-credentials.json"
-and gitignored.
-"""
-
 
 """
 helper function to open json files
@@ -14,9 +9,26 @@ helper function to open json files
 def readJson(fileName):
     with open(fileName) as f:
         return json.loads(f.read())
+        
+"""
+helper to save a json file
+"""
+def saveJson(filename, jsonData):
+    with open(fileName, 'w') as f:
+        json.dump(jsonData, f)
+
+"""
+The output of the /login endpoint is saved to a file called "suburst-token-credentials.json"
+and gitignored.
+My login credentials are in a file called sunburst-credentials.json
+"""
+loginCreds = readJson('sunburst-credentials.json')
+loginUrl = "https://sunburst.sunsetwx.com/v1/login"
+resp = requests.post(url=loginUrl, data={'email': loginCreds['email'], 'password':loginCreds['password']})
+saveJson('sunburst-token-credentials.json', resp.json())
 
 # load the token
-tokenJson = readJson("./suburst-token-credentials.json")
+tokenJson = readJson("./sunburst-token-credentials.json")
 token = tokenJson['token']
 
 
