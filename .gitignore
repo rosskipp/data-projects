@@ -1,5 +1,6 @@
 
 **/old
 **/.ipynb_checkpoints
-grouping-in-pandas/data.csv
-phone-data/*.csv
+*.csv
+*credentials.json
+*curls.sh
